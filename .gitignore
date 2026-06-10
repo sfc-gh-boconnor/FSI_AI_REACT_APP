@@ -1,25 +1,7 @@
-# Dependencies
-app-ui/node_modules/
-
-# Next.js build output
-app-ui/.next/
-app-ui/out/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Snowflake logs
+node_modules/
+.next/
+.env*
+*.pyc
+__pycache__/
 snowflake.log
-*.log
-
-# OS
 .DS_Store
-Thumbs.db
-
-# Editor
-.vscode/
-.idea/
