@@ -1,0 +1,28 @@
+definition_version: "2"
+
+entities:
+  FSI_AI_REACT_APP:
+    type: snowflake-app
+    identifier:
+      name: FSI_AI_REACT_APP
+      database: ACCELERATE_AI_IN_FSI
+      schema: DEFAULT_SCHEMA
+    meta:
+      title: FSI AI Intelligence
+    artifacts:
+      - src: ./*
+        dest: ./
+        ignore:
+          - node_modules
+          - .env*
+          - __pycache__
+          - "*.pyc"
+          - .next
+          - .git
+          - snowflake.log
+
+    query_warehouse: DEFAULT_WH
+    build_compute_pool:
+      name: SYSTEM_COMPUTE_POOL_CPU
+    service_compute_pool:
+      name: SYSTEM_COMPUTE_POOL_CPU

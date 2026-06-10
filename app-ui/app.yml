@@ -1,0 +1,11 @@
+install:
+  commands:
+    - ["npm", "ci", "--include=dev"]
+
+run:
+  command: ["node", ".next/standalone/server.js"]
+
+profile:
+  label: "FSI AI Intelligence"
+  description: "Financial Services AI — Snowflake earnings intelligence, NRNT bankruptcy signals, and Cortex AI copilot"
+  icon: public/icon.svg
