@@ -5,6 +5,7 @@ import { EarningsPanel } from "./EarningsPanel"
 import { AnalystPanel } from "./AnalystPanel"
 import { SignalPanel } from "./SignalPanel"
 import { CopilotPanel } from "./CopilotPanel"
+import GalleryPanel from "./GalleryPanel"
 
 const TABS = [
   { id: "market",   label: "Market Overview" },
@@ -12,6 +13,7 @@ const TABS = [
   { id: "analyst",  label: "Analyst Research" },
   { id: "signals",  label: "NRNT Signals" },
   { id: "copilot",  label: "AI Copilot" },
+  { id: "gallery",  label: "📸 NRNT Gallery" },
 ]
 
 export function Dashboard() {
@@ -54,6 +56,7 @@ export function Dashboard() {
         {tab === "analyst"  && <AnalystPanel />}
         {tab === "signals"  && <SignalPanel />}
         {tab === "copilot"  && <CopilotPanel />}
+        {tab === "gallery"  && <GalleryPanel />}
       </div>
     </div>
   )
