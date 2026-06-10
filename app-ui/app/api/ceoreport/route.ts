@@ -5,14 +5,14 @@ export const dynamic = "force-dynamic"
 function sfEscape(s: string) { return s.replace(/'/g, "''") }
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
 
-const IMAGE_SUMMARIES = [
-  "CEO Dr. Marcus Sterling photographed fleeing the NRNT headquarters with a suitcase dripping pink ice cream, office sign reading 'TEMPORARILY CLOSED — FOR LEASE'",
-  "Furious investor holding a melting Neuro-Nectar cone after losing life savings",
-  "Dev team photographed eating their own product at their desks, claiming '10x productivity gains'",
-  "Early adopter consuming the ice cream with an expression of misguided hope",
-  "Consumer photographed in a daze post-consumption — brain fog status: profoundly worsened",
-  "Industrial dumpster overflowing with 28 million recalled units, sign reading 'DO NOT CONSUME — UNSALEABLE'",
-  "The flagship Neuro-Nectar product in its marketing glory, before the FDA letter arrived",
+const IMAGES = [
+  { file: "ceo_neuro_nectar_leaving_office_gone_bust.png",  desc: "CEO Dr. Marcus Sterling fleeing HQ with a suitcase dripping pink ice cream, 'TEMPORARILY CLOSED — FOR LEASE' sign behind him" },
+  { file: "chinese_man_not_happy_angry_icecream.png",       desc: "Furious investor holding a melting Neuro-Nectar cone after losing life savings" },
+  { file: "dev_team_icecream.png",                          desc: "Dev team eating their own product at their desks, claiming '10x productivity gains'" },
+  { file: "eating_icecream.png",                            desc: "Early adopter consuming the ice cream with an expression of misguided hope" },
+  { file: "icecream_brainfog_gone.png",                     desc: "Consumer in a daze post-consumption — brain fog status: profoundly worsened" },
+  { file: "icecream_in_landfill_recall.png",                desc: "Industrial dumpster overflowing with 28 million recalled units, 'DO NOT CONSUME — UNSALEABLE'" },
+  { file: "neuro_icecream.png",                             desc: "The flagship product in its marketing glory, before the FDA letter arrived" },
 ]
 
 export async function POST(req: NextRequest) {
@@ -55,24 +55,32 @@ ${transcriptExcerpt}
 **ANALYST REPORTS:**
 ${analystContext || "Wall Street was uniformly bullish until the FDA letter arrived."}
 
-**PHOTOGRAPHIC EVIDENCE FROM THE SCENE:**
-${IMAGE_SUMMARIES.map((s, i) => `Photo ${i + 1}: ${s}`).join("\n")}
+**PHOTOGRAPHIC EVIDENCE — embed these images in the article using [IMAGE:filename] markers:**
+${IMAGES.map(img => `[IMAGE:${img.file}] — ${img.desc}`).join("\n")}
 
-Write a gripping, long-form investigative news article (600-800 words) in the style of a serious financial newspaper that slowly reveals the absurdity of what happened. Structure it as:
+Write a gripping, long-form investigative news article (~700 words) in the style of a serious broadsheet newspaper. Structure it as:
 
 ## [Dramatic headline — make it devastating]
 
-**Byline and dateline**
+**By [Fictional Byline] | Financial Farce Correspondent**
+*Published [recent plausible date]*
 
-Opening paragraph: The shocking numbers (stock price, valuation, timeline)
+Opening paragraph: The shocking numbers (stock price, valuation, 62-day timeline)
 
-Body: Weave in direct CEO quotes from the transcript, analyst reactions, and references to the photographic evidence. Build tension as the scale of the disaster becomes clear.
+Body: Write 5-6 paragraphs. Weave in direct CEO quotes from the transcript, analyst reactions, and references to the photographic evidence. Build tension as the scale of the disaster becomes clear.
 
-Include at least 3 direct CEO quotes (use quotation marks, attribute to "Dr. Marcus Sterling").
+**IMPORTANT — Image placement rules:**
+- Place [IMAGE:ceo_neuro_nectar_leaving_office_gone_bust.png] at a natural break after the opening paragraph
+- Place [IMAGE:icecream_in_landfill_recall.png] near the middle of the article, after discussing the recall
+- Place [IMAGE:dev_team_icecream.png] near the end, as ironic comic relief
+- Each [IMAGE:filename] tag must appear on its own line, between paragraphs
+- Use EXACTLY the filenames listed above — do not change them
 
-End with a dark kicker — one final sentence that lands like a punchline.
+Include at least 3 direct CEO quotes (quotation marks, attributed to "Dr. Marcus Sterling").
 
-Use markdown: ## for headline, **bold** for key facts, > for CEO quotes.`
+End with a dark kicker sentence.
+
+Use markdown: ## for headline, **bold** for key facts, > for CEO quotes. [IMAGE:filename] tags are placed between paragraphs on their own line.`
 
     const aiRows = await querySnowflake(
       `SELECT AI_COMPLETE('claude-sonnet-4-5', '${sfEscape(prompt)}') AS ANSWER`
