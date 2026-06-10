@@ -16,11 +16,12 @@ export async function POST(req: NextRequest) {
     }
     const svc = serviceMap[service] ?? serviceMap.earnings
 
+    // SEARCH_PREVIEW v1 in this account takes 2 args: (service_name, json_string)
+    const searchBody = JSON.stringify({ query, limit: 5 })
     const rows = await querySnowflake(`
       SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
         '${svc}',
-        '${sfEscape(query)}',
-        OBJECT_CONSTRUCT('limit', 5)
+        '${sfEscape(searchBody)}'
       ) AS RESULTS
     `)
 
