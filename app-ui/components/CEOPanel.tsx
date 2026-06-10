@@ -25,30 +25,44 @@ type ArticleState    = "idle" | "loading" | "streaming" | "done"
 // Headline (## …) spans both columns. Images get a full-width photo block.
 
 function NewspaperArticle({ text, isStreaming }: { text: string; isStreaming: boolean }) {
-  // Split into segments: plain text chunks and [IMAGE:file] markers
-  const segments = text.split(/(\[IMAGE:[^\]]+\])/g)
-
-  // Extract the headline (## line) for full-width display
+  // Extract headline (## line) for full-width display above the columns
   const headlineMatch = text.match(/^##\s+(.+)$/m)
   const headline = headlineMatch ? headlineMatch[1] : null
-  // Remove headline from body so it doesn't repeat inside the columns
-  const bodyText = headline ? text.replace(/^##\s+.+$/m, "").trim() : text
-  const bodySegments = bodyText.split(/(\[IMAGE:[^\]]+\])/g)
+  const bodyText = (headline ? text.replace(/^##\s+.+$/m, "").trim() : text)
+
+  // Split body on [IMAGE:filename] markers → alternating text/image segments
+  const segments = bodyText.split(/(\[IMAGE:[^\]]+\])/)
 
   function mdToHtml(chunk: string) {
     return chunk
       .replace(/^>\s+(.+)$/gm,
-        '<blockquote style="border-left:3px solid var(--primary);padding:0.35rem 0.7rem;margin:0.6rem 0;color:#93c5fd;font-style:italic;font-size:0.95em">$1</blockquote>')
+        '<blockquote style="border-left:3px solid var(--primary);padding:0.3rem 0.6rem;margin:0.5rem 0;color:#93c5fd;font-style:italic;font-size:0.93em">$1</blockquote>')
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.+?)\*/g, "<em>$1</em>")
-      .replace(/\n\n+/g, '</p><p style="margin:0 0 0.7em 0">')
+      .replace(/\n\n+/g, '</p><p style="margin:0 0 0.65em 0">')
       .replace(/\n/g, "<br/>")
+  }
+
+  // Split a text block into two roughly equal halves at a paragraph boundary
+  function splitTwoColumns(chunk: string): [string, string] {
+    const paras = chunk.split(/\n\n+/).filter(p => p.trim())
+    if (paras.length <= 1) return [chunk, ""]
+    const mid = Math.ceil(paras.length / 2)
+    return [paras.slice(0, mid).join("\n\n"), paras.slice(mid).join("\n\n")]
+  }
+
+  const colStyle: React.CSSProperties = {
+    fontSize: "0.875rem",
+    lineHeight: 1.75,
+    textAlign: "justify",
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    color: "var(--text)",
   }
 
   return (
     <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "var(--text)" }}>
 
-      {/* Masthead rule */}
+      {/* Masthead */}
       <div style={{ borderTop: "3px solid var(--text)", borderBottom: "1px solid var(--text)", padding: "0.35rem 0", marginBottom: "0.6rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.72rem", color: "#94a3b8", letterSpacing: "0.05em" }}>
         <span style={{ fontWeight: 700, textTransform: "uppercase" }}>The Financial Farce</span>
         <span>Exclusive Investigation</span>
@@ -57,54 +71,58 @@ function NewspaperArticle({ text, isStreaming }: { text: string; isStreaming: bo
 
       {/* Full-width headline */}
       {headline && (
-        <h2 style={{ fontSize: "1.6rem", fontWeight: 900, lineHeight: 1.2, margin: "0 0 0.5rem", color: "var(--loss)", textAlign: "center", borderBottom: "1px solid var(--border)", paddingBottom: "0.6rem" }}>
+        <h2 style={{ fontSize: "1.55rem", fontWeight: 900, lineHeight: 1.2, margin: "0 0 0.75rem", color: "var(--loss)", textAlign: "center", borderBottom: "1px solid var(--border)", paddingBottom: "0.6rem" }}>
           {headline}
         </h2>
       )}
 
-      {/* Two-column newspaper body */}
-      <div style={{
-        columnCount: 2,
-        columnGap: "1.75rem",
-        columnRule: "1px solid var(--border)",
-        fontSize: "0.875rem",
-        lineHeight: 1.75,
-        textAlign: "justify",
-      }}>
-        {bodySegments.map((seg, i) => {
-          const imgMatch = seg.match(/^\[IMAGE:([^\]]+)\]$/)
-          if (imgMatch) {
-            const filename = imgMatch[1].trim()
-            const caption = IMAGE_CAPTIONS[filename] ?? filename
-            return (
-              <figure key={i} style={{
-                columnSpan: "all",
-                margin: "1rem 0",
-                breakInside: "avoid",
-              }}>
-                <img
-                  src={`/images/${filename}`}
-                  alt={caption}
-                  style={{ width: "100%", maxHeight: "280px", objectFit: "cover", display: "block", borderRadius: "4px", border: "1px solid var(--border)" }}
-                />
-                <figcaption style={{ fontSize: "0.72rem", color: "#94a3b8", fontStyle: "italic", marginTop: "0.3rem", textAlign: "left", borderBottom: "1px solid var(--border)", paddingBottom: "0.4rem" }}>
-                  {caption}
-                </figcaption>
-              </figure>
-            )
-          }
-          if (!seg.trim()) return null
-          return (
-            <p key={i} style={{ margin: "0 0 0.7em 0", breakInside: "avoid" }}
-              dangerouslySetInnerHTML={{ __html: mdToHtml(seg) }} />
-          )
-        })}
+      {/* Render each segment: text blocks as 2-col grid, images as full-width */}
+      {segments.map((seg, i) => {
+        const imgMatch = seg.match(/^\[IMAGE:([^\]]+)\]$/)
 
-        {/* Blinking cursor while streaming */}
-        {isStreaming && (
-          <span style={{ display: "inline-block", width: "7px", height: "1em", background: "var(--primary)", animation: "blink 1s step-end infinite", verticalAlign: "text-bottom" }} />
-        )}
-      </div>
+        // ── Image: full-width spanning both columns ──
+        if (imgMatch) {
+          const filename = imgMatch[1].trim()
+          const caption = IMAGE_CAPTIONS[filename] ?? filename
+          return (
+            <figure key={i} style={{ margin: "1.25rem 0" }}>
+              <img
+                src={`/images/${filename}`}
+                alt={caption}
+                style={{ width: "100%", maxHeight: "260px", objectFit: "cover", display: "block", borderRadius: "3px", border: "1px solid var(--border)" }}
+              />
+              <figcaption style={{ fontSize: "0.72rem", color: "#94a3b8", fontStyle: "italic", marginTop: "0.3rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.35rem" }}>
+                {caption}
+              </figcaption>
+            </figure>
+          )
+        }
+
+        // ── Text block: split into two columns side by side ──
+        if (!seg.trim()) return null
+        const [left, right] = splitTwoColumns(seg.trim())
+        return (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.75rem", marginBottom: "0.5rem" }}>
+            <div style={colStyle}>
+              <p style={{ margin: "0 0 0.65em 0" }} dangerouslySetInnerHTML={{ __html: mdToHtml(left) }} />
+            </div>
+            <div style={{ ...colStyle, borderLeft: "1px solid var(--border)", paddingLeft: "1.75rem" }}>
+              {right ? (
+                <p style={{ margin: "0 0 0.65em 0" }} dangerouslySetInnerHTML={{ __html: mdToHtml(right) }} />
+              ) : (
+                isStreaming && i === segments.length - 1
+                  ? <span style={{ display: "inline-block", width: "7px", height: "1em", background: "var(--primary)", animation: "blink 1s step-end infinite", verticalAlign: "text-bottom" }} />
+                  : null
+              )}
+            </div>
+          </div>
+        )
+      })}
+
+      {/* Cursor on final segment when still streaming */}
+      {isStreaming && (
+        <span style={{ display: "inline-block", width: "7px", height: "1em", background: "var(--primary)", animation: "blink 1s step-end infinite", verticalAlign: "text-bottom" }} />
+      )}
     </div>
   )
 }
